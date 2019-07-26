@@ -1,0 +1,17 @@
+tell application "Reminders"
+  set output to ""
+  set agendaList to list "Reminders"
+  repeat with reminderProp in (get the properties of every reminder of agendaList)
+    set idProp to id of reminderProp
+    set nameProp to name of reminderProp
+    set bodyProp to body of reminderProp
+    set priorityProp to priority of reminderProp
+    set completeProp to completed of reminderProp
+    set dueDateProp to due date of reminderProp
+    set modDateProp to modification date of reminderProp
+
+    set bodyDelim to do shell script "tr '\n' 'Þ' <<< \"" & bodyProp & "\""
+
+    set output to output & nameProp & "\t" & bodyDelim & "\t" & priorityProp & "\t" & completeProp & "\t" & dueDateProp & "\t" & modDateProp & "\t" & idProp & "\t" & linefeed
+  end repeat
+end tell

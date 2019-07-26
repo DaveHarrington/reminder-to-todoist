@@ -1,0 +1,8 @@
+on run {id_, add_line}
+  tell application "Reminders"
+    set output to ""
+    set myReminder to 1st reminder whose id is id_
+    set bodyProp to body of myReminder & linefeed & add_line
+    set body of myReminder to bodyProp
+  end tell
+end run
