@@ -64,22 +64,38 @@ def main(todoist_api_key, todoist_label_name):
     logger.debug('Finished Sync')
 
 def equivalent(reminder, todo_item):
+    if todo_item['due'] is None:
+        if reminder['due date'] is not None:
+            return False
+        todo_due_date = None
+    else:
+        if len(todo_item['due']['date']) == 10:
+            todo_item['due']['date'] += "T12:00:00"
+        todo_due_date = datetime.datetime.strptime(
+            todo_item['due']['date'],
+            '%Y-%m-%dT%H:%M:%S',
+        )
+
     return (
         reminder['name'] == todo_item['content']
         and reminder['priority'] == todo_item['priority']
         and reminder['completed'] == todo_item['checked']
-        and reminder['due date'] == datetime.datetime.strptime(
-            todo_item['due']['date'],
-            '%Y-%m-%dT%H:%M:%S',
-        )
-    )
+        and reminder['due date'] == todo_due_date)
 
 def update_reminder_to_todoist(reminder, todo_item):
     logger.info('Sync todoist item: %d', todo_item['id'])
-    new_duedate = datetime.datetime.strptime(
-        todo_item['due']['date'],
-        '%Y-%m-%dT%H:%M:%S',
-    )
+
+    if todo_item['due'] is None:
+        new_duedate = "missing value"
+    else:
+        if len(todo_item['due']['date']) == 10:
+            todo_item['due']['date'] += "T12:00:00"
+
+        new_duedate = datetime.datetime.strptime(
+            todo_item['due']['date'],
+            '%Y-%m-%dT%H:%M:%S',
+        ).strftime(reminder_timefmt)
+
     process = subprocess.run(
         [
             'osascript',
@@ -88,7 +104,7 @@ def update_reminder_to_todoist(reminder, todo_item):
             todo_item['content'],
             {1: '0', 2: '9', 3: '5', 4: '1'}[todo_item['priority']],
             str(bool(todo_item['checked'])),
-            new_duedate.strftime(reminder_timefmt),
+            new_duedate,
         ],
         cwd='osascripts',
         check=True,
@@ -148,7 +164,10 @@ def load_reminders():
         body = body_.split("Þ")[:-1]
         priority = {'0': 1, '9': 2, '5': 3, '1': 4}[priority_]
         completed = completed_ == 'true'
-        duedate = datetime.datetime.strptime(duedate_, reminder_timefmt)
+        if duedate_ != "missing value":
+            duedate = datetime.datetime.strptime(duedate_, reminder_timefmt)
+        else:
+            duedate = None
         moddate = datetime.datetime.strptime(moddate_, reminder_timefmt)
 
         todo_item_id = None
