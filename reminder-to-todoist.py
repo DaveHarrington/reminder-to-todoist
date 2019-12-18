@@ -65,8 +65,6 @@ def main(todoist_api_key, todoist_label_name):
 
 def equivalent(reminder, todo_item):
     if todo_item['due'] is None:
-        if reminder['due date'] is not None:
-            return False
         todo_due_date = None
     else:
         if len(todo_item['due']['date']) == 10:
@@ -159,6 +157,7 @@ def load_reminders():
     for line in process.stdout.splitlines():
         if not line:
             continue
+
         name, body_, priority_, completed_, duedate_, moddate_, id_, _ = line.split("\t")
 
         body = body_.split("Þ")[:-1]
@@ -168,6 +167,7 @@ def load_reminders():
             duedate = datetime.datetime.strptime(duedate_, reminder_timefmt)
         else:
             duedate = None
+
         moddate = datetime.datetime.strptime(moddate_, reminder_timefmt)
 
         todo_item_id = None
