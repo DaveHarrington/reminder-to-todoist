@@ -69,6 +69,10 @@ def equivalent(reminder, todo_item):
     else:
         if len(todo_item['due']['date']) == 10:
             todo_item['due']['date'] += "T12:00:00"
+
+        if todo_item['due']['date'][-1] == 'Z':
+            todo_item['due']['date'] = todo_item['due']['date'][:-1]
+
         todo_due_date = datetime.datetime.strptime(
             todo_item['due']['date'],
             '%Y-%m-%dT%H:%M:%S',
