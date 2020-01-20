@@ -24,8 +24,6 @@ from pathlib import Path
 
 from todoist.api import TodoistAPI
 
-logger = logging.getLogger(os.path.splitext(os.path.basename(sys.argv[0]))[0])
-
 reminder_timefmt = '%A, %B %d, %Y at %I:%M:%S %p'
 
 def main(todoist_api_key, todoist_label_name):
@@ -198,13 +196,32 @@ def load_reminders():
 
 def setup_logging(options):
     """Configure logging."""
-    root = logging.getLogger("")
-    root.setLevel(logging.WARNING)
-    logger.setLevel(options['--debug'] and logging.DEBUG or logging.INFO)
-    ch = logging.StreamHandler()
-    ch.setFormatter(logging.Formatter(
-        "%(asctime)s: %(levelname)s[%(name)s] %(message)s", "%Y-%m-%d %H:%M:%S"))
-    root.addHandler(ch)
+    global logger
+    logger = logging.getLogger(
+        os.path.splitext(os.path.basename(sys.argv[0]))[0],
+    )
+
+    formatter = logging.Formatter(
+        "%(asctime)s: %(levelname)s[%(name)s] %(message)s",
+        "%Y-%m-%d %H:%M:%S"
+    )
+    logger.setLevel(logging.DEBUG)
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(
+        options['--debug'] and logging.DEBUG or
+        logging.ERROR,
+    ) # cron will send to mail
+    stream_handler.setFormatter(formatter)
+
+    logFilePath = "/tmp/reminder-to-todoist.log"
+    file_handler = logging.handlers.TimedRotatingFileHandler(
+        filename=logFilePath, when='midnight', backupCount=30)
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.DEBUG)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
 
 def load_todoist_api_key():
     with Path(Path.home(), '.todoist_api_key').open() as f:
