@@ -21,6 +21,7 @@ import logging
 import logging.handlers
 import subprocess
 from pathlib import Path
+from requests.exceptions import ConnectionError
 
 from todoist.api import TodoistAPI
 
@@ -31,7 +32,11 @@ def main(todoist_api_key, todoist_label_name):
     reminders = load_reminders()
 
     api = TodoistAPI(todoist_api_key)
-    api.sync()
+    try:
+        api.sync()
+    except ConnectionError:
+        logger.debug('Failed to talk to todoist API, network down, exit')
+        return
 
     for label in api.state['labels']:
         if label['name'] == todoist_label_name:
