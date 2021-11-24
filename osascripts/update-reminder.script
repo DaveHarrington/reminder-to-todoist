@@ -6,7 +6,7 @@ on run {id_, newName, newPriority, newCompleted, newDueDate}
     set priority of myReminder to newPriority
     set completed of myReminder to newCompleted
     if (newDueDate is equal to "missing value")
-        delete due date of myReminder
+      # This doesn't work
     else
       set due date of myReminder to date newDueDate
     end if

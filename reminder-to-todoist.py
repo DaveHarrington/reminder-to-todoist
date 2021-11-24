@@ -152,14 +152,19 @@ def append_reminder_body(reminder, todo_item):
 def load_reminders():
     reminders = []
 
-    process = subprocess.run(
-        ['osascript', 'list-reminders.script'],
-        cwd='osascripts',
-        check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        universal_newlines=True,
-    )
+    try:
+        process = subprocess.run(
+            ['osascript', 'list-reminders.script'],
+            cwd='osascripts',
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            universal_newlines=True,
+            timeout=40,
+        )
+    except subprocess.CalledProcessError as exc:
+        print("List Reminders Script Failed: ", exc.returncode, exc.output)
+        raise
 
     for line in process.stdout.splitlines():
         if not line:
